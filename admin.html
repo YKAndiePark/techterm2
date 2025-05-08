@@ -119,6 +119,12 @@
         .btn-secondary:hover {
             background-color: #7f8c8d;
         }
+        .btn-ai {
+            background-color: #27ae60;
+        }
+        .btn-ai:hover {
+            background-color: #2ecc71;
+        }
         .action-buttons {
             margin-top: 30px;
             display: flex;
@@ -172,6 +178,9 @@
         .badge-new {
             background-color: #e74c3c;
         }
+        .badge-ai {
+            background-color: #27ae60;
+        }
         .action-icon {
             color: #7f8c8d;
             cursor: pointer;
@@ -203,7 +212,7 @@
             font-size: 18px;
             color: #7f8c8d;
         }
-        .btn-edit, .btn-delete {
+        .btn-edit, .btn-delete, .btn-view {
             padding: 5px 10px;
             margin-right: 5px;
             border: none;
@@ -219,8 +228,113 @@
             background-color: #e74c3c;
             color: white;
         }
+        .btn-view {
+            background-color: #3498db;
+            color: white;
+        }
         .show-on-edit {
             display: none;
+        }
+        .api-settings {
+            background-color: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .api-settings h2 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+        #aiStatusIndicator {
+            margin-left: 15px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .ai-enabled {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .ai-disabled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #555;
+        }
+        .preview-section {
+            margin-bottom: 20px;
+        }
+        .preview-section h3 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -247,6 +361,23 @@
             <div id="errorAlert" class="alert alert-danger">
                 오류가 발생했습니다.
             </div>
+        </div>
+
+        <div class="api-settings">
+            <h2>OpenAI API 설정 <span id="aiStatusIndicator" class="ai-disabled">비활성화</span></h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="apiKey">API 키</label>
+                    <input type="password" id="apiKey" class="form-control" placeholder="OpenAI API 키를 입력하세요">
+                </div>
+                <div class="form-group" style="flex: 0 0 150px;">
+                    <label>&nbsp;</label>
+                    <button id="saveApiKey" class="btn form-control">설정 저장</button>
+                </div>
+            </div>
+            <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                OpenAI API 키를 설정하면 AI를 통해 자동으로 용어 상세 정보 및 페이지를 생성할 수 있습니다. API 키는 브라우저에 안전하게 저장됩니다.
+            </p>
         </div>
 
         <div class="admin-panel">
@@ -286,6 +417,9 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="isNew" name="isNew"> 새 용어로 표시
                         </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="useAI" name="useAI"> AI를 사용하여 상세 정보 생성 및 상세 페이지 생성
+                        </label>
                     </div>
                 </div>
 
@@ -297,6 +431,7 @@
                 <div class="action-buttons">
                     <button type="button" class="btn btn-secondary" id="resetBtn">초기화</button>
                     <button type="button" class="btn btn-secondary show-on-edit" id="cancelBtn">취소</button>
+                    <button type="button" class="btn btn-ai" id="previewAiBtn">AI 미리보기</button>
                     <button type="submit" class="btn" id="submitBtn">용어 추가</button>
                 </div>
             </form>
@@ -314,12 +449,59 @@
         </footer>
     </div>
 
+    <!-- AI 미리보기 모달 -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>AI 생성 미리보기</h2>
+            <p>OpenAI API를 통해 생성된 내용입니다. 이 내용으로 상세 페이지가 생성됩니다.</p>
+            
+            <div class="preview-section">
+                <h3>상세 설명</h3>
+                <div id="previewDescription"></div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>주요 특징</h3>
+                <div id="previewFeatures"></div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>활용 사례</h3>
+                <div id="previewUseCases"></div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>역사 및 배경</h3>
+                <div id="previewHistory"></div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>관련 용어</h3>
+                <div id="previewRelatedTerms"></div>
+            </div>
+            
+            <div class="preview-section">
+                <h3>원본 JSON 데이터</h3>
+                <pre id="previewJson"></pre>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" class="btn btn-secondary" id="closePreviewBtn">닫기</button>
+                <button type="button" class="btn" id="usePreviewBtn">이 내용으로 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/openai-helper.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 전역 변수 설정
             let allTerms = []; // 모든 용어를 저장하는 배열
             let editMode = false; // 편집 모드 상태
             let nextId = 1; // 새 용어 ID (JSON에서 로드 후 업데이트됨)
+            let aiEnabled = false; // AI 기능 활성화 상태
+            let currentPreviewData = null; // 현재 미리보기 중인 AI 생성 데이터
             
             // DOM 요소 참조
             const termForm = document.getElementById('termForm');
@@ -332,12 +514,26 @@
             const submitBtn = document.getElementById('submitBtn');
             const resetBtn = document.getElementById('resetBtn');
             const cancelBtn = document.getElementById('cancelBtn');
+            const aiStatusIndicator = document.getElementById('aiStatusIndicator');
+            const apiKeyInput = document.getElementById('apiKey');
+            const saveApiKeyBtn = document.getElementById('saveApiKey');
+            const useAICheckbox = document.getElementById('useAI');
+            const previewAiBtn = document.getElementById('previewAiBtn');
+            
+            // 모달 요소
+            const previewModal = document.getElementById('previewModal');
+            const closeModalBtn = document.querySelector('.close-modal');
+            const closePreviewBtn = document.getElementById('closePreviewBtn');
+            const usePreviewBtn = document.getElementById('usePreviewBtn');
             
             // 초기화 함수 호출
             init();
             
             // 초기화 함수
             function init() {
+                // API 키 설정 확인
+                checkApiKey();
+                
                 // 기존 카테고리 로드
                 loadCategories();
                 
@@ -346,6 +542,28 @@
                 
                 // 이벤트 리스너 설정
                 setupEventListeners();
+            }
+            
+            // API 키 확인 함수
+            function checkApiKey() {
+                const savedApiKey = localStorage.getItem('openai-api-key');
+                if (savedApiKey) {
+                    apiKeyInput.value = savedApiKey;
+                    aiEnabled = true;
+                    aiStatusIndicator.textContent = '활성화';
+                    aiStatusIndicator.classList.remove('ai-disabled');
+                    aiStatusIndicator.classList.add('ai-enabled');
+                    useAICheckbox.disabled = false;
+                    previewAiBtn.disabled = false;
+                } else {
+                    aiEnabled = false;
+                    aiStatusIndicator.textContent = '비활성화';
+                    aiStatusIndicator.classList.remove('ai-enabled');
+                    aiStatusIndicator.classList.add('ai-disabled');
+                    useAICheckbox.disabled = true;
+                    useAICheckbox.checked = false;
+                    previewAiBtn.disabled = true;
+                }
             }
             
             // 카테고리 로드 함수
@@ -499,13 +717,28 @@
                     const row = document.createElement('tr');
                     row.dataset.id = term.id;
                     
+                    // 상태 뱃지 생성
+                    let statusBadge = '';
+                    if (term.isNew) {
+                        statusBadge += '<span class="badge badge-new">NEW</span> ';
+                    }
+                    if (term.hasDetailPage) {
+                        statusBadge += '<span class="badge badge-ai">상세페이지</span>';
+                    }
+                    
+                    // 상세 페이지 링크
+                    const viewButton = term.hasDetailPage 
+                        ? `<a href="${term.detailPagePath}" target="_blank" class="btn-view">보기</a>` 
+                        : '';
+                    
                     row.innerHTML = `
                         <td>${term.id}</td>
                         <td>${term.term}</td>
                         <td>${term.category}</td>
                         <td>${term.description.length > 50 ? term.description.substring(0, 50) + '...' : term.description}</td>
-                        <td>${term.isNew ? '<span class="badge badge-new">NEW</span>' : ''}</td>
+                        <td>${statusBadge}</td>
                         <td>
+                            ${viewButton}
                             <button class="btn-edit" data-id="${term.id}">편집</button>
                             <button class="btn-delete" data-id="${term.id}">삭제</button>
                         </td>
@@ -604,9 +837,38 @@
             // 이벤트 리스너 설정 함수
             function setupEventListeners() {
                 // 폼 제출 이벤트 리스너
-                termForm.addEventListener('submit', function(e) {
+                termForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    saveTerm();
+                    
+                    // 중복 제출 방지
+                    if (submitBtn.disabled) return;
+                    
+                    // 버튼 비활성화
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner"></span> 처리 중...';
+                    
+                    try {
+                        // AI 사용 여부 확인
+                        if (useAICheckbox.checked && aiEnabled) {
+                            // 이미 미리보기를 했고 데이터가 있는 경우
+                            if (currentPreviewData) {
+                                await saveTerm(currentPreviewData);
+                            } else {
+                                // 미리보기 없이 바로 AI 생성 및 저장
+                                await generateAndSaveWithAI();
+                            }
+                        } else {
+                            // 일반 저장
+                            await saveTerm();
+                        }
+                    } catch (error) {
+                        console.error('용어 저장 오류:', error);
+                        showAlert(errorAlert, `용어 저장 오류: ${error.message}`);
+                    } finally {
+                        // 버튼 상태 복원
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = editMode ? '용어 수정' : '용어 추가';
+                    }
                 });
                 
                 // 폼 초기화 버튼
@@ -618,10 +880,222 @@
                 cancelBtn.addEventListener('click', function() {
                     cancelEdit();
                 });
+                
+                // API 키 저장 버튼
+                saveApiKeyBtn.addEventListener('click', function() {
+                    saveApiKey();
+                });
+                
+                // AI 미리보기 버튼
+                previewAiBtn.addEventListener('click', function() {
+                    previewAIGeneration();
+                });
+                
+                // 모달 닫기 버튼들
+                closeModalBtn.addEventListener('click', closeModal);
+                closePreviewBtn.addEventListener('click', closeModal);
+                
+                // 모달 외부 클릭 시 닫기
+                window.addEventListener('click', function(e) {
+                    if (e.target === previewModal) {
+                        closeModal();
+                    }
+                });
+                
+                // 미리보기 사용 버튼
+                usePreviewBtn.addEventListener('click', async function() {
+                    // 버튼 비활성화
+                    usePreviewBtn.disabled = true;
+                    usePreviewBtn.innerHTML = '<span class="spinner"></span> 저장 중...';
+                    
+                    try {
+                        closeModal();
+                        await saveTerm(currentPreviewData);
+                    } catch (error) {
+                        console.error('미리보기 데이터 저장 오류:', error);
+                        showAlert(errorAlert, `저장 오류: ${error.message}`);
+                    } finally {
+                        // 버튼 상태 복원
+                        usePreviewBtn.disabled = false;
+                        usePreviewBtn.innerHTML = '이 내용으로 저장';
+                    }
+                });
+            }
+            
+            // API 키 저장 함수
+            function saveApiKey() {
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (apiKey) {
+                    // API 키 저장
+                    localStorage.setItem('openai-api-key', apiKey);
+                    
+                    // UI 업데이트
+                    aiEnabled = true;
+                    aiStatusIndicator.textContent = '활성화';
+                    aiStatusIndicator.classList.remove('ai-disabled');
+                    aiStatusIndicator.classList.add('ai-enabled');
+                    useAICheckbox.disabled = false;
+                    previewAiBtn.disabled = false;
+                    
+                    showAlert(successAlert, 'API 키가 저장되었습니다.');
+                } else {
+                    // API 키 제거
+                    localStorage.removeItem('openai-api-key');
+                    
+                    // UI 업데이트
+                    aiEnabled = false;
+                    aiStatusIndicator.textContent = '비활성화';
+                    aiStatusIndicator.classList.remove('ai-enabled');
+                    aiStatusIndicator.classList.add('ai-disabled');
+                    useAICheckbox.disabled = true;
+                    useAICheckbox.checked = false;
+                    previewAiBtn.disabled = true;
+                    
+                    showAlert(errorAlert, 'API 키가 삭제되었습니다.');
+                }
+            }
+            
+            // 모달 닫기 함수
+            function closeModal() {
+                previewModal.style.display = 'none';
+            }
+            
+            // AI 생성 미리보기 함수
+            async function previewAIGeneration() {
+                // 필수 입력 확인
+                const term = document.getElementById('term').value;
+                let category = categorySelect.value;
+                if (category === 'new-category') {
+                    category = newCategoryInput.value.trim();
+                }
+                const description = document.getElementById('description').value;
+                
+                if (!term || !category || !description) {
+                    showAlert(errorAlert, '용어, 카테고리, 설명을 모두 입력해주세요.');
+                    return;
+                }
+                
+                // API 키 확인
+                const apiKey = localStorage.getItem('openai-api-key');
+                if (!apiKey) {
+                    showAlert(errorAlert, 'OpenAI API 키가 설정되지 않았습니다.');
+                    return;
+                }
+                
+                // 버튼 로딩 상태로 변경
+                previewAiBtn.disabled = true;
+                previewAiBtn.innerHTML = '<span class="spinner"></span> 생성 중...';
+                
+                try {
+                    // OpenAI API 호출
+                    const termDetails = await window.OpenAIHelper.generateTermDetails(
+                        term, category, description, apiKey
+                    );
+                    
+                    // 미리보기 데이터 저장
+                    currentPreviewData = termDetails;
+                    
+                    // 미리보기 모달 내용 업데이트
+                    document.getElementById('previewDescription').textContent = termDetails.detailedDescription || '정보 없음';
+                    
+                    // 주요 특징 목록
+                    if (termDetails.keyFeatures && termDetails.keyFeatures.length > 0) {
+                        const featuresList = document.createElement('ul');
+                        termDetails.keyFeatures.forEach(feature => {
+                            const li = document.createElement('li');
+                            li.textContent = feature;
+                            featuresList.appendChild(li);
+                        });
+                        document.getElementById('previewFeatures').innerHTML = '';
+                        document.getElementById('previewFeatures').appendChild(featuresList);
+                    } else {
+                        document.getElementById('previewFeatures').textContent = '정보 없음';
+                    }
+                    
+                    // 활용 사례
+                    document.getElementById('previewUseCases').textContent = termDetails.useCases || '정보 없음';
+                    
+                    // 역사 및 배경
+                    document.getElementById('previewHistory').textContent = termDetails.history || '정보 없음';
+                    
+                    // 관련 용어
+                    if (termDetails.relatedTerms && termDetails.relatedTerms.length > 0) {
+                        const relatedList = document.createElement('ul');
+                        termDetails.relatedTerms.forEach(relTerm => {
+                            const li = document.createElement('li');
+                            li.textContent = relTerm;
+                            relatedList.appendChild(li);
+                        });
+                        document.getElementById('previewRelatedTerms').innerHTML = '';
+                        document.getElementById('previewRelatedTerms').appendChild(relatedList);
+                    } else {
+                        document.getElementById('previewRelatedTerms').textContent = '정보 없음';
+                    }
+                    
+                    // JSON 데이터
+                    document.getElementById('previewJson').textContent = JSON.stringify(termDetails, null, 2);
+                    
+                    // 모달 표시
+                    previewModal.style.display = 'block';
+                } catch (error) {
+                    console.error('AI 미리보기 생성 오류:', error);
+                    showAlert(errorAlert, `AI 생성 오류: ${error.message}`);
+                } finally {
+                    // 버튼 상태 복원
+                    previewAiBtn.disabled = false;
+                    previewAiBtn.innerHTML = 'AI 미리보기';
+                }
+            }
+            
+            // AI를 사용하여 용어 생성 및 저장
+            async function generateAndSaveWithAI() {
+                // 필수 입력 확인
+                const term = document.getElementById('term').value;
+                let category = categorySelect.value;
+                if (category === 'new-category') {
+                    category = newCategoryInput.value.trim();
+                }
+                const description = document.getElementById('description').value;
+                
+                if (!term || !category || !description) {
+                    showAlert(errorAlert, '용어, 카테고리, 설명을 모두 입력해주세요.');
+                    return;
+                }
+                
+                // API 키 확인
+                const apiKey = localStorage.getItem('openai-api-key');
+                if (!apiKey) {
+                    showAlert(errorAlert, 'OpenAI API 키가 설정되지 않았습니다.');
+                    return;
+                }
+                
+                // 버튼 로딩 상태로 변경
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> 생성 중...';
+                
+                try {
+                    // OpenAI API 호출
+                    const termDetails = await window.OpenAIHelper.generateTermDetails(
+                        term, category, description, apiKey
+                    );
+                    
+                    // 용어 저장
+                    await saveTerm(termDetails);
+                    return true;
+                } catch (error) {
+                    console.error('AI 생성 오류:', error);
+                    showAlert(errorAlert, `AI 생성 오류: ${error.message}`);
+                    return false;
+                } finally {
+                    // 버튼 상태 복원
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = editMode ? '용어 수정' : '용어 추가';
+                }
             }
             
             // 용어 저장 함수
-            function saveTerm() {
+            async function saveTerm(aiGeneratedData = null) {
                 // 카테고리 처리
                 let category = categorySelect.value;
                 if (category === 'new-category') {
@@ -644,22 +1118,51 @@
                 }
                 
                 // 관련 용어 처리
-                const relatedTermsString = document.getElementById('relatedTerms').value;
-                const relatedTerms = relatedTermsString
-                    ? relatedTermsString.split(',').map(term => term.trim()).filter(term => term.length > 0)
-                    : [];
+                let relatedTerms = [];
+                if (aiGeneratedData && aiGeneratedData.relatedTerms) {
+                    relatedTerms = aiGeneratedData.relatedTerms;
+                } else {
+                    const relatedTermsString = document.getElementById('relatedTerms').value;
+                    relatedTerms = relatedTermsString
+                        ? relatedTermsString.split(',').map(term => term.trim()).filter(term => term.length > 0)
+                        : [];
+                }
+                
+                // 상세 설명 처리
+                let detailedDescription = document.getElementById('detailedDescription').value;
+                if (aiGeneratedData && aiGeneratedData.detailedDescription) {
+                    detailedDescription = aiGeneratedData.detailedDescription;
+                }
+                
+                // 용어명과 설명 가져오기
+                const termName = document.getElementById('term').value;
+                const description = document.getElementById('description').value;
+                
+                // 파일명 생성 (용어명을 소문자 및 하이픈으로 변환)
+                const fileName = termName.toLowerCase().replace(/\s+/g, '-');
+                const detailPagePath = `detail/${fileName}.html`;
                 
                 // 용어 객체 생성
                 const termData = {
-                    term: document.getElementById('term').value,
+                    term: termName,
                     category: category,
-                    description: document.getElementById('description').value,
-                    detailedDescription: document.getElementById('detailedDescription').value,
+                    description: description,
+                    detailedDescription: detailedDescription,
                     isNew: document.getElementById('isNew').checked,
                     relatedTerms: relatedTerms,
-                    hasDetailPage: false, // 기본값
-                    detailPagePath: '' // 기본값
+                    hasDetailPage: aiGeneratedData !== null, // AI 생성 데이터가 있으면 상세 페이지 있음
+                    detailPagePath: aiGeneratedData !== null ? detailPagePath : ''
                 };
+                
+                // AI 생성 데이터 추가
+                if (aiGeneratedData) {
+                    termData.keyFeatures = aiGeneratedData.keyFeatures || [];
+                    termData.useCases = aiGeneratedData.useCases || '';
+                    termData.history = aiGeneratedData.history || '';
+                    termData.references = aiGeneratedData.references || [];
+                }
+                
+                let detailPageCreated = false;
                 
                 if (editMode) {
                     // 기존 용어 업데이트
@@ -670,21 +1173,48 @@
                         // 기존 데이터 유지
                         termData.id = termId;
                         termData.dateAdded = allTerms[index].dateAdded;
-                        termData.hasDetailPage = allTerms[index].hasDetailPage || false;
-                        termData.detailPagePath = allTerms[index].detailPagePath || '';
+                        
+                        // 기존에 상세 페이지가 있었는지 확인
+                        const hadDetailPage = allTerms[index].hasDetailPage;
                         
                         // 용어 업데이트
                         allTerms[index] = termData;
+                        
+                        // AI 데이터로 상세 페이지 생성 (새로 생성하는 경우만)
+                        if (aiGeneratedData && !hadDetailPage) {
+                            // 버튼 비활성화 및 로딩 표시
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<span class="spinner"></span> 상세 페이지 생성 중...';
+                            
+                            detailPageCreated = await createDetailPage(termName, category, aiGeneratedData);
+                            
+                            // 버튼 상태 복원
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '용어 수정';
+                        }
                     }
                 } else {
                     // 새 용어 추가
                     termData.id = nextId++;
                     termData.dateAdded = new Date().toISOString().split('T')[0];
                     allTerms.push(termData);
+                    
+                    // AI 데이터로 상세 페이지 생성
+                    if (aiGeneratedData) {
+                        // 버튼 비활성화 및 로딩 표시
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner"></span> 상세 페이지 생성 중...';
+                        
+                        detailPageCreated = await createDetailPage(termName, category, aiGeneratedData);
+                        
+                        // 버튼 상태 복원
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '용어 추가';
+                    }
                 }
                 
                 // 데이터 저장
-                saveTerms();
+                await saveTerms();
                 
                 // 폼 초기화
                 resetForm();
@@ -692,8 +1222,10 @@
                 // 용어 목록 새로고침
                 displayTerms();
                 
-                // 성공 메시지 표시
-                showAlert(successAlert, editMode ? '용어가 수정되었습니다.' : '용어가 추가되었습니다.');
+                // 성공 메시지 표시 (이미 상세 페이지 생성에서 메시지를 표시했을 수 있음)
+                if (!detailPageCreated) {
+                    showAlert(successAlert, editMode ? '용어가 수정되었습니다.' : '용어가 추가되었습니다.');
+                }
                 
                 // 편집 모드 종료
                 editMode = false;
@@ -701,41 +1233,70 @@
                 document.querySelectorAll('.show-on-edit').forEach(el => {
                     el.style.display = 'none';
                 });
+                
+                // 미리보기 데이터 초기화
+                currentPreviewData = null;
+            }
+            
+            // 상세 페이지 생성 함수
+            async function createDetailPage(term, category, termDetails) {
+                try {
+                    // HTML 파일 생성
+                    const htmlContent = window.OpenAIHelper.generateDetailPageHTML(term, category, termDetails);
+                    
+                    // 파일명 생성 (용어명을 소문자 및 하이픈으로 변환)
+                    const fileName = term.toLowerCase().replace(/\s+/g, '-');
+                    
+                    // 서버 API를 통해 파일 저장
+                    const result = await window.OpenAIHelper.saveDetailPage(term, htmlContent);
+                    
+                    if (result.success) {
+                        console.log(`상세 페이지가 성공적으로 생성되었습니다: ${result.filePath}`);
+                        showAlert(successAlert, `${term} 상세 페이지가 생성되었습니다.`);
+                        return true;
+                    } else {
+                        console.error('상세 페이지 생성 실패:', result.error);
+                        showAlert(errorAlert, `상세 페이지 생성 실패: ${result.error}`);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('상세 페이지 생성 오류:', error);
+                    showAlert(errorAlert, `상세 페이지 생성 오류: ${error.message}`);
+                    return false;
+                }
             }
             
             // 용어 데이터 저장 함수
-            function saveTerms() {
+            async function saveTerms() {
                 // 전체 용어 목록을 JSON 형식으로 변환
                 const termsData = { terms: allTerms };
                 
-                // 로컬 스토리지에 저장 (서버 저장 대신)
+                // 로컬 스토리지에 저장 (백업용)
                 localStorage.setItem('techTerms', JSON.stringify(allTerms));
                 
-                // 실제 서버 환경에서는 아래 주석을 해제하여 데이터를 JSON 파일로 저장
-                /*
-                fetch('save-terms.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(termsData),
-                })
-                .then(response => {
+                // 서버 API를 통해 JSON 파일 저장
+                try {
+                    const response = await fetch('/api/save-terms', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(termsData),
+                    });
+                    
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || response.statusText);
                     }
-                    return response.json();
-                })
-                .then(data => {
+                    
+                    const data = await response.json();
                     console.log('데이터 저장 성공:', data);
-                })
-                .catch(error => {
+                    return true;
+                } catch (error) {
                     console.error('데이터 저장 오류:', error);
                     showAlert(errorAlert, `데이터 저장 중 오류가 발생했습니다: ${error.message}`);
-                });
-                */
-                
-                console.log('데이터 저장 완료:', termsData);
+                    return false;
+                }
             }
             
             // 폼 초기화 함수

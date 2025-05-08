@@ -1,0 +1,17 @@
+{
+  "name": "tech-term-glossary",
+  "version": "1.0.0",
+  "description": "기술 용어 사전 웹 애플리케이션",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
