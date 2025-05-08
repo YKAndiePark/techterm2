@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{용어명} - 테크 용어집</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .search-bar {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        .auth-links a {
+            text-decoration: none;
+            color: #3498db;
+            margin-left: 15px;
+            font-size: 14px;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .term-detail {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .term-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .term-title {
+            margin: 0;
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        .term-category {
+            display: inline-block;
+            background-color: #ecf0f1;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .term-description {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .term-details h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .term-details p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        .term-details ul {
+            padding-left: 20px;
+        }
+        .term-details li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .related-terms {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .related-terms h2 {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .related-terms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .related-term-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .related-term-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .related-term-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #2980b9;
+        }
+        .related-term-card .category {
+            font-size: 12px;
+            color: #7f8c8d;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .related-term-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #777;
+        }
+        .references {
+            margin-top: 30px;
+        }
+        .references h2 {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .references ul {
+            padding-left: 20px;
+        }
+        .references li {
+            margin-bottom: 10px;
+        }
+        .references a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .references a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>테크 용어집</h1>
+            <div class="header-right">
+                <input type="search" class="search-bar" placeholder="용어 검색... (Ctrl + K)">
+                <div class="auth-links">
+                    <a href="#">로그인</a>
+                    <a href="#">회원가입</a>
+                </div>
+            </div>
+        </header>
+
+        <a href="../index.html" class="back-link">← 목록으로 돌아가기</a>
+
+        <section class="term-detail">
+            <div class="term-header">
+                <div>
+                    <h1 class="term-title">{용어명}</h1>
+                    <span class="term-category">{카테고리}</span>
+                </div>
+            </div>
+            
+            <p class="term-description">{용어설명}</p>
+            
+            <div class="term-details">
+                <h2>상세 설명</h2>
+                <p>{상세설명_1}</p>
+                <p>{상세설명_2}</p>
+                
+                <h2>주요 특징</h2>
+                <ul>
+                    <li>{특징_1}</li>
+                    <li>{특징_2}</li>
+                    <li>{특징_3}</li>
+                </ul>
+                
+                <h2>활용 사례</h2>
+                <p>{활용사례}</p>
+                
+                <div class="references">
+                    <h2>참고 자료</h2>
+                    <ul>
+                        <li><a href="{참고자료링크_1}" target="_blank">{참고자료_1}</a></li>
+                        <li><a href="{참고자료링크_2}" target="_blank">{참고자료_2}</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="related-terms">
+            <h2>관련 용어</h2>
+            <div class="related-terms-grid">
+                <!-- 관련 용어 카드가 여기에 들어갑니다 -->
+                {관련용어}
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 테크 용어집. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>용어 관리 - 테크 용어집</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .auth-links a {
+            text-decoration: none;
+            color: #3498db;
+            margin-left: 15px;
+            font-size: 14px;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .page-title {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .admin-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        select.form-control {
+            height: 40px;
+        }
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .checkbox-label input {
+            margin-right: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #777;
+        }
+        .terms-list {
+            margin-top: 40px;
+        }
+        .terms-list h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .terms-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .terms-table th, .terms-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .terms-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .terms-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-new {
+            background-color: #e74c3c;
+        }
+        .action-icon {
+            color: #7f8c8d;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .action-icon:hover {
+            color: #2c3e50;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>테크 용어집</h1>
+            <div class="header-right">
+                <div class="auth-links">
+                    <a href="#">로그인</a>
+                    <a href="#">회원가입</a>
+                </div>
+            </div>
+        </header>
+
+        <a href="index.html" class="back-link">← 메인 페이지로 돌아가기</a>
+
+        <h1 class="page-title">용어 관리</h1>
+
+        <div id="successAlert" class="alert alert-success">
+            용어가 성공적으로 추가되었습니다.
+        </div>
+
+        <div class="admin-panel">
+            <form id="termForm">
+                <div class="form-group">
+                    <label for="term">용어명</label>
+                    <input type="text" id="term" name="term" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">카테고리</label>
+                    <select id="category" name="category" class="form-control" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="API">API</option>
+                        <option value="Account">Account</option>
+                        <option value="Storage">Storage</option>
+                        <option value="AI">AI</option>
+                        <option value="Application">Application</option>
+                        <option value="Developer Platform & Library">Developer Platform & Library</option>
+                        <option value="Security">Security</option>
+                        <option value="Managed Service">Managed Service</option>
+                        <option value="Notification">Notification</option>
+                        <option value="Support">Support</option>
+                        <option value="Analytics">Analytics</option>
+                        <option value="Terminology">Terminology</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">설명</label>
+                    <textarea id="description" name="description" class="form-control" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="detailedDescription">상세 설명 (선택사항)</label>
+                    <textarea id="detailedDescription" name="detailedDescription" class="form-control"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>옵션</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isNew" name="isNew"> 새 용어로 표시
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="relatedTerms">관련 용어 (쉼표로 구분)</label>
+                    <input type="text" id="relatedTerms" name="relatedTerms" class="form-control">
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" id="resetBtn">초기화</button>
+                    <button type="submit" class="btn" id="submitBtn">용어 추가</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="terms-list">
+            <h2>최근 추가된 용어</h2>
+            <table class="terms-table">
+                <thead>
+                    <tr>
+                        <th>용어명</th>
+                        <th>카테고리</th>
+                        <th>설명</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody id="termsTableBody">
+                    <!-- 여기에 JavaScript로 동적으로 추가된 용어가 표시됩니다 -->
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 테크 용어집. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // 현재 용어 목록을 저장할 배열
+        let termsList = [];
+
+        // 페이지 로드 시 로컬 스토리지에서 데이터 불러오기
+        document.addEventListener('DOMContentLoaded', function() {
+            // 로컬 스토리지에서 기존 용어 목록 불러오기
+            const storedTerms = localStorage.getItem('techTerms');
+            if (storedTerms) {
+                termsList = JSON.parse(storedTerms);
+                updateTermsTable();
+            }
+
+            // 폼 제출 이벤트 리스너
+            document.getElementById('termForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addNewTerm();
+            });
+
+            // 폼 초기화 버튼
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                document.getElementById('termForm').reset();
+            });
+        });
+
+        // 새 용어 추가 함수
+        function addNewTerm() {
+            const termName = document.getElementById('term').value;
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const detailedDescription = document.getElementById('detailedDescription').value;
+            const isNew = document.getElementById('isNew').checked;
+            const relatedTerms = document.getElementById('relatedTerms').value.split(',')
+                .map(term => term.trim())
+                .filter(term => term.length > 0);
+
+            // 새 용어 객체 생성
+            const newTerm = {
+                id: Date.now(), // 타임스탬프로 고유 ID 생성
+                term: termName,
+                category: category,
+                description: description,
+                detailedDescription: detailedDescription,
+                isNew: isNew,
+                relatedTerms: relatedTerms,
+                dateAdded: new Date().toISOString()
+            };
+
+            // 용어 목록에 추가
+            termsList.unshift(newTerm); // 최근 추가된 용어를 맨 앞에 추가
+
+            // 로컬 스토리지에 저장
+            localStorage.setItem('techTerms', JSON.stringify(termsList));
+
+            // 테이블 업데이트
+            updateTermsTable();
+
+            // 성공 메시지 표시
+            const successAlert = document.getElementById('successAlert');
+            successAlert.style.display = 'block';
+            
+            // 3초 후 메시지 숨기기
+            setTimeout(function() {
+                successAlert.style.display = 'none';
+            }, 3000);
+
+            // 폼 초기화
+            document.getElementById('termForm').reset();
+        }
+
+        // 용어 테이블 업데이트 함수
+        function updateTermsTable() {
+            const tableBody = document.getElementById('termsTableBody');
+            tableBody.innerHTML = '';
+
+            // 최대 10개의 최근 용어만 표시
+            const recentTerms = termsList.slice(0, 10);
+
+            recentTerms.forEach(term => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${term.term}</td>
+                    <td>${term.category}</td>
+                    <td>${term.description}</td>
+                    <td>${term.isNew ? '<span class="badge badge-new">NEW</span>' : ''}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
