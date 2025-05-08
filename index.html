@@ -142,7 +142,12 @@
             background-color: #2980b9;
             text-decoration: none !important;
         }
-
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
         footer {
             text-align: center;
             padding: 20px;
@@ -168,61 +173,14 @@
             </div>
         </header>
 
-        <nav class="category-filters">
-            <button class="active">전체</button>
-            <button>프로그래밍</button>
-            <button>웹 개발</button>
-            <button>인공지능</button>
-            <button>클라우드</button>
-            <button>보안</button>
+        <nav class="category-filters" id="categoryFilters">
+            <button class="active" data-category="all">전체</button>
+            <!-- 카테고리는 동적으로 로드됩니다 -->
         </nav>
 
         <h2 class="glossary-list-header">용어 목록</h2>
-        <main class="glossary-grid">
-            <article class="term-card">
-                <span class="new-badge">NEW</span>
-                <span class="category">API</span>
-                <h3>카카오톡 메시지 API</h3>
-                <p>사용자의 카카오톡 친구에게 카카오톡 메시지를 전송하는 API</p>
-                <a href="detail/kakaotalk-message-api.html" class="details-link">자세히 보기</a>
-            </article>
-
-            <article class="term-card">
-                <span class="category">프로그래밍</span>
-                <h3>알고리즘</h3>
-                <p>문제를 해결하기 위한 명확하게 정의된 단계별 절차입니다.</p>
-                <a href="#" class="details-link">자세히 보기</a>
-            </article>
-
-            <article class="term-card">
-                <span class="category">AI</span>
-                <h3>CodeBuddy</h3>
-                <p>kakao GitHub 및 IDE(VS Code, JetBrains)에서 개발, 코드리뷰 활동을 돕는 AI 도구</p>
-                <a href="detail/codebuddy.html" class="details-link">자세히 보기</a>
-            </article>
-
-            <article class="term-card">
-                <span class="new-badge">NEW</span>
-                <span class="category">프로그래밍</span>
-                <h3>프레임워크</h3>
-                <p>소프트웨어 개발을 위한 구조와 도구를 제공하는 플랫폼입니다.</p>
-                <a href="#" class="details-link">자세히 보기</a>
-            </article>
-
-            <article class="term-card">
-                <span class="category">클라우드</span>
-                <h3>클라우드 컴퓨팅</h3>
-                <p>인터넷을 통해 컴퓨팅 리소스를 제공하는 서비스 모델입니다.</p>
-                <a href="#" class="details-link">자세히 보기</a>
-            </article>
-
-            <article class="term-card">
-                <span class="new-badge">NEW</span>
-                <span class="category">인공지능</span>
-                <h3>딥러닝</h3>
-                <p>인간의 뇌를 모방한 인공신경망을 사용하는 머신러닝의 한 분야입니다.</p>
-                <a href="#" class="details-link">자세히 보기</a>
-            </article>
+        <main class="glossary-grid" id="glossaryGrid">
+            <div class="loading">용어 데이터 로딩 중...</div>
         </main>
 
         <footer>
@@ -232,46 +190,200 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 로컬 스토리지에서 사용자가 추가한 용어들 불러오기
-            const storedTerms = localStorage.getItem('techTerms');
-            if (storedTerms) {
-                const termsList = JSON.parse(storedTerms);
-                const glossaryGrid = document.querySelector('.glossary-grid');
+            // 카테고리 필터 및 용어 그리드 참조 저장
+            const categoryFilters = document.getElementById('categoryFilters');
+            const glossaryGrid = document.getElementById('glossaryGrid');
+            
+            // 용어 데이터 불러오기
+            loadTerms();
+            
+            // 용어 데이터 불러오는 함수
+            function loadTerms() {
+                // JSON 파일에서 데이터 불러오기
+                fetch('data/terms.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 데이터가 로드되면 용어 카드 생성
+                        displayTerms(data.terms);
+                        
+                        // 고유 카테고리 추출 및 필터 생성
+                        createCategoryFilters(data.terms);
+                        
+                        // 로컬 스토리지에서 사용자 추가 용어 불러오기
+                        loadUserAddedTerms();
+                    })
+                    .catch(error => {
+                        console.error('데이터 로딩 오류:', error);
+                        glossaryGrid.innerHTML = `<div class="loading">데이터를 불러오는 중 오류가 발생했습니다.<br>${error.message}</div>`;
+                    });
+            }
+            
+            // 용어 카드 생성 및 표시 함수
+            function displayTerms(terms) {
+                // 로딩 메시지 제거
+                glossaryGrid.innerHTML = '';
                 
-                // 사용자가 추가한 용어를 기존 용어 목록에 추가
-                termsList.forEach(term => {
-                    const termCard = document.createElement('article');
-                    termCard.className = 'term-card';
-                    
-                    // 용어 카드 내용 구성
-                    let cardContent = '';
-                    
-                    // NEW 뱃지 추가 (필요한 경우)
-                    if (term.isNew) {
-                        cardContent += '<span class="new-badge">NEW</span>';
-                    }
-                    
-                    // 카테고리, 용어명, 설명 추가
-                    cardContent += `
-                        <span class="category">${term.category}</span>
-                        <h3>${term.term}</h3>
-                        <p>${term.description}</p>
-                    `;
-                    
-                    // 상세 페이지가 있으면 링크 연결, 없으면 # 사용
-                    const detailPath = `detail/${term.term.toLowerCase().replace(/\s+/g, '-')}.html`;
-                    cardContent += `<a href="#" class="details-link">자세히 보기</a>`;
-                    
-                    termCard.innerHTML = cardContent;
-                    glossaryGrid.prepend(termCard); // 맨 앞에 추가
+                // 각 용어에 대한 카드 생성
+                terms.forEach(term => {
+                    const termCard = createTermCard(term);
+                    glossaryGrid.appendChild(termCard);
                 });
+                
+                // 카드가 없는 경우 메시지 표시
+                if (terms.length === 0) {
+                    glossaryGrid.innerHTML = '<div class="loading">표시할 용어가 없습니다.</div>';
+                }
+            }
+            
+            // 개별 용어 카드 생성 함수
+            function createTermCard(term) {
+                const article = document.createElement('article');
+                article.className = 'term-card';
+                article.dataset.category = term.category.toLowerCase();
+                article.dataset.id = term.id;
+                
+                let cardContent = '';
+                
+                // NEW 뱃지 추가 (필요한 경우)
+                if (term.isNew) {
+                    cardContent += '<span class="new-badge">NEW</span>';
+                }
+                
+                // 카테고리, 용어명, 설명 추가
+                cardContent += `
+                    <span class="category">${term.category}</span>
+                    <h3>${term.term}</h3>
+                    <p>${term.description}</p>
+                `;
+                
+                // 상세 페이지 링크 설정
+                if (term.hasDetailPage) {
+                    cardContent += `<a href="${term.detailPagePath}" class="details-link">자세히 보기</a>`;
+                } else {
+                    cardContent += `<a href="#" class="details-link">자세히 보기</a>`;
+                }
+                
+                article.innerHTML = cardContent;
+                return article;
+            }
+            
+            // 카테고리 필터 생성 함수
+            function createCategoryFilters(terms) {
+                // 첫 번째 버튼("전체")을 제외한 기존 버튼 제거
+                const allButton = categoryFilters.querySelector('[data-category="all"]');
+                categoryFilters.innerHTML = '';
+                categoryFilters.appendChild(allButton);
+                
+                // 고유 카테고리 추출
+                const uniqueCategories = [...new Set(terms.map(term => term.category))];
+                
+                // 카테고리 버튼 생성
+                uniqueCategories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.textContent = category;
+                    button.dataset.category = category.toLowerCase();
+                    categoryFilters.appendChild(button);
+                });
+                
+                // 카테고리 필터링 기능 설정
+                setupCategoryFilters();
+            }
+            
+            // 카테고리 필터 기능 설정
+            function setupCategoryFilters() {
+                const buttons = categoryFilters.querySelectorAll('button');
+                
+                buttons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // 버튼 활성화 상태 변경
+                        buttons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // 선택된 카테고리 가져오기
+                        const category = this.dataset.category;
+                        
+                        // 용어 카드 필터링
+                        filterTermsByCategory(category);
+                    });
+                });
+            }
+            
+            // 카테고리별 용어 필터링 함수
+            function filterTermsByCategory(category) {
+                const termCards = glossaryGrid.querySelectorAll('.term-card');
+                
+                termCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category.includes(category)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+            
+            // 사용자가 추가한 용어 로드 함수
+            function loadUserAddedTerms() {
+                const storedTerms = localStorage.getItem('techTerms');
+                if (storedTerms) {
+                    const userTerms = JSON.parse(storedTerms);
+                    
+                    // 사용자가 추가한 용어 처리
+                    userTerms.forEach(term => {
+                        // 기본 ID 설정 (현재 시간 + 랜덤 값)
+                        term.id = term.id || Date.now() + Math.floor(Math.random() * 1000);
+                        
+                        // 세부 속성 설정
+                        term.hasDetailPage = false;
+                        term.detailPagePath = '';
+                        
+                        // 용어 카드 생성 및 추가
+                        const termCard = createTermCard(term);
+                        glossaryGrid.prepend(termCard); // 맨 앞에 추가
+                    });
+                    
+                    // 카테고리 필터 업데이트
+                    updateCategoryFilters();
+                }
+            }
+            
+            // 카테고리 필터 업데이트 함수
+            function updateCategoryFilters() {
+                const termCards = glossaryGrid.querySelectorAll('.term-card');
+                const categories = new Set();
+                
+                // 현재 표시된 모든 용어의 카테고리 수집
+                termCards.forEach(card => {
+                    const category = card.querySelector('.category').textContent;
+                    categories.add(category);
+                });
+                
+                // 현재 필터 옵션과 비교
+                categories.forEach(category => {
+                    const exists = categoryFilters.querySelector(`[data-category="${category.toLowerCase()}"]`);
+                    
+                    // 필터에 없는 카테고리는 추가
+                    if (!exists) {
+                        const button = document.createElement('button');
+                        button.textContent = category;
+                        button.dataset.category = category.toLowerCase();
+                        categoryFilters.appendChild(button);
+                    }
+                });
+                
+                // 필터 기능 다시 설정
+                setupCategoryFilters();
             }
             
             // 검색 기능 구현
             const searchBar = document.querySelector('.search-bar');
             searchBar.addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
-                const termCards = document.querySelectorAll('.term-card');
+                const termCards = glossaryGrid.querySelectorAll('.term-card');
                 
                 termCards.forEach(card => {
                     const termName = card.querySelector('h3').textContent.toLowerCase();
@@ -285,29 +397,6 @@
                     } else {
                         card.style.display = 'none';
                     }
-                });
-            });
-            
-            // 카테고리 필터링 기능 구현
-            const categoryButtons = document.querySelectorAll('.category-filters button');
-            categoryButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // 버튼 활성화 상태 변경
-                    categoryButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const category = this.textContent.toLowerCase();
-                    const termCards = document.querySelectorAll('.term-card');
-                    
-                    termCards.forEach(card => {
-                        const termCategory = card.querySelector('.category').textContent.toLowerCase();
-                        
-                        if (category === '전체' || termCategory.includes(category)) {
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
                 });
             });
         });

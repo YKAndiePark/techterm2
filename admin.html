@@ -192,6 +192,36 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-edit {
+            background-color: #f39c12;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .show-on-edit {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -210,12 +240,18 @@
 
         <h1 class="page-title">용어 관리</h1>
 
-        <div id="successAlert" class="alert alert-success">
-            용어가 성공적으로 추가되었습니다.
+        <div id="alertContainer">
+            <div id="successAlert" class="alert alert-success">
+                용어가 성공적으로 추가되었습니다.
+            </div>
+            <div id="errorAlert" class="alert alert-danger">
+                오류가 발생했습니다.
+            </div>
         </div>
 
         <div class="admin-panel">
             <form id="termForm">
+                <input type="hidden" id="termId" name="termId">
                 <div class="form-group">
                     <label for="term">용어명</label>
                     <input type="text" id="term" name="term" class="form-control" required>
@@ -225,19 +261,13 @@
                     <label for="category">카테고리</label>
                     <select id="category" name="category" class="form-control" required>
                         <option value="">카테고리 선택</option>
-                        <option value="API">API</option>
-                        <option value="Account">Account</option>
-                        <option value="Storage">Storage</option>
-                        <option value="AI">AI</option>
-                        <option value="Application">Application</option>
-                        <option value="Developer Platform & Library">Developer Platform & Library</option>
-                        <option value="Security">Security</option>
-                        <option value="Managed Service">Managed Service</option>
-                        <option value="Notification">Notification</option>
-                        <option value="Support">Support</option>
-                        <option value="Analytics">Analytics</option>
-                        <option value="Terminology">Terminology</option>
+                        <!-- 카테고리 옵션은 동적으로 로드됩니다 -->
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-category" class="show-on-new-category">새 카테고리</label>
+                    <input type="text" id="new-category" name="new-category" class="form-control show-on-new-category" style="display: none;">
                 </div>
 
                 <div class="form-group">
@@ -266,26 +296,17 @@
 
                 <div class="action-buttons">
                     <button type="button" class="btn btn-secondary" id="resetBtn">초기화</button>
+                    <button type="button" class="btn btn-secondary show-on-edit" id="cancelBtn">취소</button>
                     <button type="submit" class="btn" id="submitBtn">용어 추가</button>
                 </div>
             </form>
         </div>
 
         <div class="terms-list">
-            <h2>최근 추가된 용어</h2>
-            <table class="terms-table">
-                <thead>
-                    <tr>
-                        <th>용어명</th>
-                        <th>카테고리</th>
-                        <th>설명</th>
-                        <th>상태</th>
-                    </tr>
-                </thead>
-                <tbody id="termsTableBody">
-                    <!-- 여기에 JavaScript로 동적으로 추가된 용어가 표시됩니다 -->
-                </tbody>
-            </table>
+            <h2>용어 목록</h2>
+            <div id="termsContainer">
+                <div class="loading">용어 데이터 로딩 중...</div>
+            </div>
         </div>
 
         <footer>
@@ -294,96 +315,461 @@
     </div>
 
     <script>
-        // 현재 용어 목록을 저장할 배열
-        let termsList = [];
-
-        // 페이지 로드 시 로컬 스토리지에서 데이터 불러오기
         document.addEventListener('DOMContentLoaded', function() {
-            // 로컬 스토리지에서 기존 용어 목록 불러오기
-            const storedTerms = localStorage.getItem('techTerms');
-            if (storedTerms) {
-                termsList = JSON.parse(storedTerms);
-                updateTermsTable();
-            }
-
-            // 폼 제출 이벤트 리스너
-            document.getElementById('termForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                addNewTerm();
-            });
-
-            // 폼 초기화 버튼
-            document.getElementById('resetBtn').addEventListener('click', function() {
-                document.getElementById('termForm').reset();
-            });
-        });
-
-        // 새 용어 추가 함수
-        function addNewTerm() {
-            const termName = document.getElementById('term').value;
-            const category = document.getElementById('category').value;
-            const description = document.getElementById('description').value;
-            const detailedDescription = document.getElementById('detailedDescription').value;
-            const isNew = document.getElementById('isNew').checked;
-            const relatedTerms = document.getElementById('relatedTerms').value.split(',')
-                .map(term => term.trim())
-                .filter(term => term.length > 0);
-
-            // 새 용어 객체 생성
-            const newTerm = {
-                id: Date.now(), // 타임스탬프로 고유 ID 생성
-                term: termName,
-                category: category,
-                description: description,
-                detailedDescription: detailedDescription,
-                isNew: isNew,
-                relatedTerms: relatedTerms,
-                dateAdded: new Date().toISOString()
-            };
-
-            // 용어 목록에 추가
-            termsList.unshift(newTerm); // 최근 추가된 용어를 맨 앞에 추가
-
-            // 로컬 스토리지에 저장
-            localStorage.setItem('techTerms', JSON.stringify(termsList));
-
-            // 테이블 업데이트
-            updateTermsTable();
-
-            // 성공 메시지 표시
-            const successAlert = document.getElementById('successAlert');
-            successAlert.style.display = 'block';
+            // 전역 변수 설정
+            let allTerms = []; // 모든 용어를 저장하는 배열
+            let editMode = false; // 편집 모드 상태
+            let nextId = 1; // 새 용어 ID (JSON에서 로드 후 업데이트됨)
             
-            // 3초 후 메시지 숨기기
-            setTimeout(function() {
-                successAlert.style.display = 'none';
-            }, 3000);
-
-            // 폼 초기화
-            document.getElementById('termForm').reset();
-        }
-
-        // 용어 테이블 업데이트 함수
-        function updateTermsTable() {
-            const tableBody = document.getElementById('termsTableBody');
-            tableBody.innerHTML = '';
-
-            // 최대 10개의 최근 용어만 표시
-            const recentTerms = termsList.slice(0, 10);
-
-            recentTerms.forEach(term => {
-                const row = document.createElement('tr');
+            // DOM 요소 참조
+            const termForm = document.getElementById('termForm');
+            const termIdField = document.getElementById('termId');
+            const categorySelect = document.getElementById('category');
+            const newCategoryInput = document.getElementById('new-category');
+            const termsContainer = document.getElementById('termsContainer');
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+            const submitBtn = document.getElementById('submitBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            // 초기화 함수 호출
+            init();
+            
+            // 초기화 함수
+            function init() {
+                // 기존 카테고리 로드
+                loadCategories();
                 
-                row.innerHTML = `
-                    <td>${term.term}</td>
-                    <td>${term.category}</td>
-                    <td>${term.description}</td>
-                    <td>${term.isNew ? '<span class="badge badge-new">NEW</span>' : ''}</td>
+                // 용어 데이터 로드
+                loadTerms();
+                
+                // 이벤트 리스너 설정
+                setupEventListeners();
+            }
+            
+            // 카테고리 로드 함수
+            function loadCategories() {
+                // 기본 카테고리 설정
+                const defaultCategories = [
+                    "API", 
+                    "Account", 
+                    "Storage", 
+                    "AI", 
+                    "Application", 
+                    "Developer Platform & Library", 
+                    "Security",
+                    "Managed Service",
+                    "Notification",
+                    "Support",
+                    "Analytics",
+                    "Terminology",
+                    "프로그래밍",
+                    "웹 개발",
+                    "인공지능",
+                    "클라우드",
+                    "보안"
+                ];
+                
+                // 기본 옵션 추가
+                categorySelect.innerHTML = '<option value="">카테고리 선택</option>';
+                defaultCategories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+                
+                // '새 카테고리 추가' 옵션 추가
+                const newOption = document.createElement('option');
+                newOption.value = "new-category";
+                newOption.textContent = "새 카테고리 추가";
+                categorySelect.appendChild(newOption);
+                
+                // 카테고리 변경 이벤트 리스너
+                categorySelect.addEventListener('change', function() {
+                    if (this.value === 'new-category') {
+                        newCategoryInput.style.display = 'block';
+                        document.querySelector('.show-on-new-category').style.display = 'block';
+                        newCategoryInput.focus();
+                    } else {
+                        newCategoryInput.style.display = 'none';
+                        document.querySelector('.show-on-new-category').style.display = 'none';
+                    }
+                });
+            }
+            
+            // 용어 데이터 로드 함수
+            function loadTerms() {
+                // JSON 파일에서 데이터 불러오기
+                fetch('data/terms.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 데이터 저장
+                        allTerms = data.terms || [];
+                        
+                        // 다음 ID 설정 (가장 큰 ID + 1)
+                        if (allTerms.length > 0) {
+                            const maxId = Math.max(...allTerms.map(term => term.id));
+                            nextId = maxId + 1;
+                        }
+                        
+                        // 로컬 스토리지에서 사용자 추가 용어 불러오기
+                        loadUserAddedTerms();
+                        
+                        // 용어 목록 표시
+                        displayTerms();
+                    })
+                    .catch(error => {
+                        console.error('데이터 로딩 오류:', error);
+                        termsContainer.innerHTML = `<div class="error">데이터를 불러오는 중 오류가 발생했습니다: ${error.message}</div>`;
+                    });
+            }
+            
+            // 사용자 추가 용어 로드 함수
+            function loadUserAddedTerms() {
+                const storedTerms = localStorage.getItem('techTerms');
+                if (storedTerms) {
+                    try {
+                        const userTerms = JSON.parse(storedTerms);
+                        
+                        // 사용자 추가 용어 처리
+                        userTerms.forEach(term => {
+                            // 중복 ID 확인 및 새 ID 할당
+                            const existingIds = allTerms.map(t => t.id);
+                            const termId = term.id || nextId++;
+                            if (existingIds.includes(termId)) {
+                                term.id = nextId++;
+                            } else {
+                                term.id = termId;
+                            }
+                            
+                            // 기존 데이터가 없는 경우 기본값 설정
+                            term.detailedDescription = term.detailedDescription || '';
+                            term.relatedTerms = term.relatedTerms || [];
+                            term.dateAdded = term.dateAdded || new Date().toISOString().split('T')[0];
+                            
+                            // 전체 용어 배열에 추가
+                            allTerms.push(term);
+                        });
+                    } catch (error) {
+                        console.error('로컬 스토리지 데이터 파싱 오류:', error);
+                    }
+                }
+            }
+            
+            // 용어 목록 표시 함수
+            function displayTerms() {
+                if (allTerms.length === 0) {
+                    termsContainer.innerHTML = '<div class="loading">표시할 용어가 없습니다.</div>';
+                    return;
+                }
+                
+                // 용어 테이블 생성
+                const table = document.createElement('table');
+                table.className = 'terms-table';
+                
+                // 테이블 헤더 생성
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>ID</th>
+                        <th>용어명</th>
+                        <th>카테고리</th>
+                        <th>설명</th>
+                        <th>상태</th>
+                        <th>작업</th>
+                    </tr>
                 `;
+                table.appendChild(thead);
                 
-                tableBody.appendChild(row);
-            });
-        }
+                // 테이블 본문 생성
+                const tbody = document.createElement('tbody');
+                
+                // 최근 추가된 순서로 정렬 (ID가 높은 순)
+                const sortedTerms = [...allTerms].sort((a, b) => b.id - a.id);
+                
+                // 용어 행 생성
+                sortedTerms.forEach(term => {
+                    const row = document.createElement('tr');
+                    row.dataset.id = term.id;
+                    
+                    row.innerHTML = `
+                        <td>${term.id}</td>
+                        <td>${term.term}</td>
+                        <td>${term.category}</td>
+                        <td>${term.description.length > 50 ? term.description.substring(0, 50) + '...' : term.description}</td>
+                        <td>${term.isNew ? '<span class="badge badge-new">NEW</span>' : ''}</td>
+                        <td>
+                            <button class="btn-edit" data-id="${term.id}">편집</button>
+                            <button class="btn-delete" data-id="${term.id}">삭제</button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(tbody);
+                termsContainer.innerHTML = '';
+                termsContainer.appendChild(table);
+                
+                // 편집 및 삭제 버튼 이벤트 리스너 추가
+                setupTableButtons();
+            }
+            
+            // 테이블 버튼 이벤트 설정 함수
+            function setupTableButtons() {
+                // 편집 버튼
+                document.querySelectorAll('.btn-edit').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const termId = parseInt(this.dataset.id);
+                        editTerm(termId);
+                    });
+                });
+                
+                // 삭제 버튼
+                document.querySelectorAll('.btn-delete').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const termId = parseInt(this.dataset.id);
+                        deleteTerm(termId);
+                    });
+                });
+            }
+            
+            // 용어 편집 함수
+            function editTerm(termId) {
+                const term = allTerms.find(t => t.id === termId);
+                if (!term) return;
+                
+                // 폼 필드에 데이터 설정
+                termIdField.value = term.id;
+                document.getElementById('term').value = term.term;
+                
+                // 카테고리 설정
+                const categoryOption = categorySelect.querySelector(`option[value="${term.category}"]`);
+                if (categoryOption) {
+                    categorySelect.value = term.category;
+                } else {
+                    // 해당 카테고리가 없으면 새 옵션 추가
+                    const newOption = document.createElement('option');
+                    newOption.value = term.category;
+                    newOption.textContent = term.category;
+                    categorySelect.insertBefore(newOption, categorySelect.lastChild);
+                    categorySelect.value = term.category;
+                }
+                
+                document.getElementById('description').value = term.description;
+                document.getElementById('detailedDescription').value = term.detailedDescription || '';
+                document.getElementById('isNew').checked = term.isNew;
+                document.getElementById('relatedTerms').value = term.relatedTerms.join(', ');
+                
+                // 편집 모드로 전환
+                editMode = true;
+                submitBtn.textContent = '용어 수정';
+                
+                // 편집 모드 UI 표시
+                document.querySelectorAll('.show-on-edit').forEach(el => {
+                    el.style.display = 'inline-block';
+                });
+                
+                // 폼으로 스크롤
+                termForm.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // 용어 삭제 함수
+            function deleteTerm(termId) {
+                if (!confirm('정말로 이 용어를 삭제하시겠습니까?')) return;
+                
+                // 용어 배열에서 삭제
+                const index = allTerms.findIndex(t => t.id === termId);
+                if (index !== -1) {
+                    allTerms.splice(index, 1);
+                    
+                    // JSON 파일 및 로컬 스토리지 업데이트
+                    saveTerms();
+                    
+                    // 용어 목록 다시 표시
+                    displayTerms();
+                    
+                    // 성공 메시지 표시
+                    showAlert(successAlert, '용어가 삭제되었습니다.');
+                }
+            }
+            
+            // 이벤트 리스너 설정 함수
+            function setupEventListeners() {
+                // 폼 제출 이벤트 리스너
+                termForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveTerm();
+                });
+                
+                // 폼 초기화 버튼
+                resetBtn.addEventListener('click', function() {
+                    resetForm();
+                });
+                
+                // 취소 버튼
+                cancelBtn.addEventListener('click', function() {
+                    cancelEdit();
+                });
+            }
+            
+            // 용어 저장 함수
+            function saveTerm() {
+                // 카테고리 처리
+                let category = categorySelect.value;
+                if (category === 'new-category') {
+                    category = newCategoryInput.value.trim();
+                    if (!category) {
+                        showAlert(errorAlert, '새 카테고리를 입력해주세요.');
+                        return;
+                    }
+                    
+                    // 새 카테고리 옵션 추가
+                    const newOption = document.createElement('option');
+                    newOption.value = category;
+                    newOption.textContent = category;
+                    categorySelect.insertBefore(newOption, categorySelect.lastChild);
+                    categorySelect.value = category;
+                    
+                    // 입력 필드 숨기기
+                    newCategoryInput.style.display = 'none';
+                    document.querySelector('.show-on-new-category').style.display = 'none';
+                }
+                
+                // 관련 용어 처리
+                const relatedTermsString = document.getElementById('relatedTerms').value;
+                const relatedTerms = relatedTermsString
+                    ? relatedTermsString.split(',').map(term => term.trim()).filter(term => term.length > 0)
+                    : [];
+                
+                // 용어 객체 생성
+                const termData = {
+                    term: document.getElementById('term').value,
+                    category: category,
+                    description: document.getElementById('description').value,
+                    detailedDescription: document.getElementById('detailedDescription').value,
+                    isNew: document.getElementById('isNew').checked,
+                    relatedTerms: relatedTerms,
+                    hasDetailPage: false, // 기본값
+                    detailPagePath: '' // 기본값
+                };
+                
+                if (editMode) {
+                    // 기존 용어 업데이트
+                    const termId = parseInt(termIdField.value);
+                    const index = allTerms.findIndex(t => t.id === termId);
+                    
+                    if (index !== -1) {
+                        // 기존 데이터 유지
+                        termData.id = termId;
+                        termData.dateAdded = allTerms[index].dateAdded;
+                        termData.hasDetailPage = allTerms[index].hasDetailPage || false;
+                        termData.detailPagePath = allTerms[index].detailPagePath || '';
+                        
+                        // 용어 업데이트
+                        allTerms[index] = termData;
+                    }
+                } else {
+                    // 새 용어 추가
+                    termData.id = nextId++;
+                    termData.dateAdded = new Date().toISOString().split('T')[0];
+                    allTerms.push(termData);
+                }
+                
+                // 데이터 저장
+                saveTerms();
+                
+                // 폼 초기화
+                resetForm();
+                
+                // 용어 목록 새로고침
+                displayTerms();
+                
+                // 성공 메시지 표시
+                showAlert(successAlert, editMode ? '용어가 수정되었습니다.' : '용어가 추가되었습니다.');
+                
+                // 편집 모드 종료
+                editMode = false;
+                submitBtn.textContent = '용어 추가';
+                document.querySelectorAll('.show-on-edit').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+            
+            // 용어 데이터 저장 함수
+            function saveTerms() {
+                // 전체 용어 목록을 JSON 형식으로 변환
+                const termsData = { terms: allTerms };
+                
+                // 로컬 스토리지에 저장 (서버 저장 대신)
+                localStorage.setItem('techTerms', JSON.stringify(allTerms));
+                
+                // 실제 서버 환경에서는 아래 주석을 해제하여 데이터를 JSON 파일로 저장
+                /*
+                fetch('save-terms.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(termsData),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('데이터 저장 성공:', data);
+                })
+                .catch(error => {
+                    console.error('데이터 저장 오류:', error);
+                    showAlert(errorAlert, `데이터 저장 중 오류가 발생했습니다: ${error.message}`);
+                });
+                */
+                
+                console.log('데이터 저장 완료:', termsData);
+            }
+            
+            // 폼 초기화 함수
+            function resetForm() {
+                termForm.reset();
+                termIdField.value = '';
+                newCategoryInput.style.display = 'none';
+                document.querySelector('.show-on-new-category').style.display = 'none';
+            }
+            
+            // 편집 취소 함수
+            function cancelEdit() {
+                resetForm();
+                editMode = false;
+                submitBtn.textContent = '용어 추가';
+                document.querySelectorAll('.show-on-edit').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+            
+            // 알림 표시 함수
+            function showAlert(alertElement, message) {
+                // 메시지 설정
+                alertElement.textContent = message;
+                
+                // 알림 표시
+                alertElement.style.display = 'block';
+                
+                // 3초 후 숨기기
+                setTimeout(function() {
+                    alertElement.style.display = 'none';
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,76 @@
+{
+  "terms": [
+    {
+      "id": 1,
+      "term": "카카오톡 메시지 API",
+      "category": "API",
+      "description": "사용자의 카카오톡 친구에게 카카오톡 메시지를 전송하는 API",
+      "detailedDescription": "카카오톡 메시지 API는 서비스에서 카카오톡 사용자에게 직접 메시지를 전송할 수 있는 기능을 제공합니다. 이 API를 통해 개발자는 텍스트, 이미지, 링크 등을 포함한 다양한 형태의 메시지를 카카오톡 사용자에게 전송할 수 있습니다.",
+      "isNew": true,
+      "hasDetailPage": true,
+      "detailPagePath": "detail/kakaotalk-message-api.html",
+      "relatedTerms": ["카카오톡 소셜 API", "카카오톡 공유", "푸시 알림 API", "카카오톡 채널 API"],
+      "dateAdded": "2025-01-01"
+    },
+    {
+      "id": 2,
+      "term": "알고리즘",
+      "category": "프로그래밍",
+      "description": "문제를 해결하기 위한 명확하게 정의된 단계별 절차입니다.",
+      "detailedDescription": "",
+      "isNew": false,
+      "hasDetailPage": false,
+      "detailPagePath": "",
+      "relatedTerms": ["자료구조", "프로그래밍 언어", "복잡도 분석"],
+      "dateAdded": "2025-01-01"
+    },
+    {
+      "id": 3,
+      "term": "CodeBuddy",
+      "category": "AI",
+      "description": "kakao GitHub 및 IDE(VS Code, JetBrains)에서 개발, 코드리뷰 활동을 돕는 AI 도구",
+      "detailedDescription": "CodeBuddy는 카카오에서 개발한 AI 기반 코드 어시스턴트 도구로, 개발자의 생산성과 코드 품질을 향상시키기 위해 설계되었습니다. 이 도구는 GitHub 저장소와 주요 IDE에 통합되어 코드 작성, 리뷰, 버그 수정 등 다양한 개발 활동을 지원합니다.",
+      "isNew": false,
+      "hasDetailPage": true,
+      "detailPagePath": "detail/codebuddy.html",
+      "relatedTerms": ["리뷰도비", "사내 GitHub", "FORCE", "KAP 에이전트"],
+      "dateAdded": "2025-01-01"
+    },
+    {
+      "id": 4,
+      "term": "프레임워크",
+      "category": "프로그래밍",
+      "description": "소프트웨어 개발을 위한 구조와 도구를 제공하는 플랫폼입니다.",
+      "detailedDescription": "",
+      "isNew": true,
+      "hasDetailPage": false,
+      "detailPagePath": "",
+      "relatedTerms": ["라이브러리", "API", "아키텍처"],
+      "dateAdded": "2025-01-01"
+    },
+    {
+      "id": 5,
+      "term": "클라우드 컴퓨팅",
+      "category": "클라우드",
+      "description": "인터넷을 통해 컴퓨팅 리소스를 제공하는 서비스 모델입니다.",
+      "detailedDescription": "",
+      "isNew": false,
+      "hasDetailPage": false,
+      "detailPagePath": "",
+      "relatedTerms": ["IaaS", "PaaS", "SaaS", "서버리스"],
+      "dateAdded": "2025-01-01"
+    },
+    {
+      "id": 6,
+      "term": "딥러닝",
+      "category": "인공지능",
+      "description": "인간의 뇌를 모방한 인공신경망을 사용하는 머신러닝의 한 분야입니다.",
+      "detailedDescription": "",
+      "isNew": true,
+      "hasDetailPage": false,
+      "detailPagePath": "",
+      "relatedTerms": ["머신러닝", "신경망", "CNN", "RNN", "인공지능"],
+      "dateAdded": "2025-01-01"
+    }
+  ]
+}
